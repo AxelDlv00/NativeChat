@@ -1,8 +1,9 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
-const nextConfig = {
-  // output: 'export', // Génère un dossier 'out'
-  // images: { unoptimized: true }, // Requis pour l'export statique
+const nextConfig: NextConfig = {
+  // Supprime ou commente la ligne output: 'export'
+  images: { unoptimized: true }, 
 };
 
 export default nextConfig;
