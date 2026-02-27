@@ -32,7 +32,11 @@ export async function generateAIStreamingContent(
     ? localStorage.getItem('OPENAI_API_KEY') 
     : localStorage.getItem('GEMINI_API_KEY');
 
-  if (!apiKey) throw new Error(`Clé API manquante pour ${isOpenAI ? 'OpenAI' : 'Gemini'}`);
+  if (!apiKey) {
+    const errorMsg = `⚠️ **Clé API manquante** : Vous n'avez pas configuré de clé pour ${isOpenAI ? 'OpenAI' : 'Google Gemini'}. \n\nVeuillez vous rendre dans les **Paramètres** (icône roue dentée dans la barre latérale) pour l'ajouter.`;
+    onChunk(errorMsg);
+    return errorMsg;
+  }
 
   // Préparation du contexte du sujet
   const topicContext = topic 

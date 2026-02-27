@@ -1,3 +1,14 @@
+<div align="center">
+  <img src="app/icon.png" alt="NativeChat Logo" width="120">
+      
+  *[Axel Delaval](https://axeldlv00.github.io/axel-delaval-personal-page/) • 27 Février 2026*
+
+  [![GitHub](https://img.shields.io/badge/Source_Code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AxelDlv00/NativeChat)
+[![License](https://img.shields.io/badge/LICENSE-MIT-yellow?style=for-the-badge)](./LICENSE) 
+[![Website](https://img.shields.io/badge/Live-Demo-green?style=for-the-badge&logo=vercel&logoColor=white)](https://native-chat-ai.vercel.app/)
+
+</div>
+
 # NativeChat
 
 **Apprenez le chinois par l'immersion, un SMS à la fois.**
