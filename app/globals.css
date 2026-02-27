@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  /* On définit une couleur personnalisée nommée "brand" */
+  --color-brand: #99aafd;
+}
+
+body {
+  background-color: #131314;
+  color: #f3f4f6;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+html {
+  height: 100%;
+}
