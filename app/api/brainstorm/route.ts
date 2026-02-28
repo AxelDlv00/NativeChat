@@ -9,17 +9,17 @@ export async function POST(req: Request) {
     if (!apiKey) return NextResponse.json({ error: "Clé manquante" }, { status: 401 });
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     let prompt = "";
 
     if (action === 'random') {
-      prompt = `Invente un scénario de RP WeChat pour apprendre le chinois. 
+      prompt = `Invente un scénario de RP WeChat/Whatsapp pour apprendre une langue. 
       Écris un petit paragraphe narratif (2/3 phrases) pour expliquer la situation, en utilisant "je" et "tu" comme si c'était moi qui expliquait. Le scénario doit être dans la bonne humeur, avec un enjeu qui justifie la conversation. N'intègre rien de plus que ce paragraphe.
       Exemple : "Je suis ton voisin de palier et je t'envoie un message parce qu'il y a un bruit bizarre chez toi. Tu n'es pas là et tu paniques un peu. On essaie de comprendre ce qui se passe avant que j'appelle le gardien."`;
       
     } else if (action === 'improve') {
-      prompt = `Prends cette base : "${currentTopic}" corrige les erreurs et transforme-la en une situation WeChat pleine de vie. 
+      prompt = `Prends cette base : "${currentTopic}" corrige les erreurs et transforme-la en une situation de RP WeChat/Whatsapp pleine de vie. 
       Écris un petit paragraphe narratif (2/3 phrases) pour expliquer la situation, en utilisant "je" et "tu" comme si c'était moi qui expliquait. Le scénario doit être dans la bonne humeur, avec un enjeu qui justifie la conversation. N'intègre rien de plus que ce paragraphe.
       Exemple : "Je suis ton voisin de palier et je t'envoie un message parce qu'il y a un bruit bizarre chez toi. Tu n'es pas là et tu paniques un peu. On essaie de comprendre ce qui se passe avant que j'appelle le gardien."`;
       
