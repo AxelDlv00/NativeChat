@@ -11,6 +11,8 @@ import MessageMenu from './MessageMenu';
 
 interface MessageItemProps {
   message: Message;
+  sourceLang: string; 
+  targetLang: string;
   onAction: (id: string, type: ActionType, force?: boolean) => void;
   onDeleteFromHere: (id: string) => void;
   onRegenerate: (id: string) => void;
@@ -23,6 +25,8 @@ interface MarkdownComponentProps {
 
 export default function MessageItem({ 
   message, 
+  sourceLang, 
+  targetLang, 
   onAction, 
   onDeleteFromHere, 
   onRegenerate, 
@@ -126,7 +130,11 @@ export default function MessageItem({
     <div className={`group mb-6 flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
       {showMenu && (
         <div className={`mb-2 animate-in fade-in zoom-in duration-200 ${isUser ? 'mr-2' : 'ml-11'}`}>
-          <MessageMenu content={message.content} onAction={handleToolAction} />
+          <MessageMenu 
+            content={message.content} 
+            onAction={handleToolAction} 
+            showPinyin={targetLang === 'Chinois'} 
+          />
         </div>
       )}
 

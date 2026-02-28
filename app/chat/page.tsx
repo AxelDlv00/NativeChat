@@ -84,7 +84,9 @@ export default function Home() {
           false, 
           "START_CONVERSATION", 
           data.topic,
-          [introMsg]
+          [introMsg],
+          data.targetLang, 
+          data.sourceLang  
         );
       }
     } catch (e) { 
@@ -105,8 +107,12 @@ export default function Home() {
     force = false, 
     manualContent?: string,
     topicOverride?: string,
-    messagesOverride?: Message[]
+    messagesOverride?: Message[],
+    targetLangOverride?: string, // <-- NOUVEAU
+    sourceLangOverride?: string  // <-- NOUVEAU
   ) => {
+    const finalTargetLang = targetLangOverride || activeChat.targetLang;
+    const finalSourceLang = sourceLangOverride || activeChat.sourceLang;
     const allMessages = messagesOverride || activeChat.messages;
     const msgIndex = allMessages.findIndex(m => m.id === messageId);
     
@@ -143,18 +149,20 @@ export default function Home() {
     updateLocalUI(messageId, { [targetField]: "", ...(loadKey ? { [loadKey]: true } : {}) });
 
     try {
-      const finalResult = await generateAIStreamingContent(
-        type, 
-        contentToProcess, 
-        historyContext,
-        (accumulatedText) => {
-          setChats(prev => prev.map(chat => ({
-            ...chat,
-            messages: chat.messages.map(m => m.id === messageId ? { ...m, [targetField]: accumulatedText } : m)
-          })));
-        },
-        topicOverride || activeChat.topic
-      );
+    const finalResult = await generateAIStreamingContent(
+      type, 
+      contentToProcess, 
+      finalTargetLang, 
+      finalSourceLang,
+      historyContext,
+      (accumulatedText) => {
+        setChats(prev => prev.map(chat => ({
+          ...chat,
+          messages: chat.messages.map(m => m.id === messageId ? { ...m, [targetField]: accumulatedText } : m)
+        })));
+      },
+      topicOverride || activeChat.topic
+    );
 
       await fetch(`/api/messages/${messageId}`, {
         method: 'PATCH',
@@ -286,6 +294,8 @@ export default function Home() {
               <MessageItem 
                 key={m.id} 
                 message={m} 
+                sourceLang={activeChat.sourceLang}
+                targetLang={activeChat.targetLang}
                 onAction={(id, type, force) => handleAIRequest(id, type, force)} 
                 onRegenerate={handleRegenerate}
                 onUpdate={handleUpdateMessage}
