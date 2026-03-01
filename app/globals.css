@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* On définit une couleur personnalisée nommée "brand" */
   --color-brand: #99aafd;
 }
 

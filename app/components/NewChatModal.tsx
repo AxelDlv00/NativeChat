@@ -16,12 +16,9 @@ export default function NewChatModal({
   const [isLoading, setIsLoading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-resize du textarea avec une limite de hauteur
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      // On fixe une hauteur de base plus grande (ex: 120px)
-      // et on laisse grandir jusqu'à un max via le scroll
       const newHeight = Math.max(120, textareaRef.current.scrollHeight);
       textareaRef.current.style.height = newHeight + 'px';
     }
@@ -30,16 +27,32 @@ export default function NewChatModal({
   const callBrainstorm = async (action: 'random' | 'improve') => {
     setIsLoading(true);
     try {
-      const apiKey = localStorage.getItem('GEMINI_API_KEY');
+      const selectedModel = localStorage.getItem('SELECTED_MODEL') || 'gemini-2.5-flash-lite';
+      const provider = localStorage.getItem('SELECTED_PROVIDER') || 'google';
+      
+      const apiKey = provider === 'openai' 
+        ? localStorage.getItem('OPENAI_API_KEY') 
+        : localStorage.getItem('GEMINI_API_KEY');
+
       const res = await fetch('/api/brainstorm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, currentTopic: topic, apiKey })
+        body: JSON.stringify({ 
+          action, 
+          currentTopic: topic, 
+          apiKey,
+          provider,    
+          model: selectedModel 
+        })
       });
+      
       const data = await res.json();
       if (data.result) setTopic(data.result);
-    } catch (e) { console.error(e); }
-    finally { setIsLoading(false); }
+    } catch (e) { 
+      console.error(e); 
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
   if (!isOpen) return null;

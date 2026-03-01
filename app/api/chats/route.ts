@@ -10,12 +10,12 @@ export async function GET() {
     .from('Chat')
     .select('*, messages:Message(*)')
     .eq('userId', userId)
-    .order('createdAt', { ascending: false });
+    .order('createdAt', { ascending: false })
+    .order('createdAt', { foreignTable: 'Message', ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
-
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return new NextResponse("Non autorisé", { status: 401 });

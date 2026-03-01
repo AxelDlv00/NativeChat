@@ -8,9 +8,6 @@ export interface ChatContext {
   content: string;
 }
 
-/**
- * Détermine si la langue nécessite une ligne/colonne phonétique
- */
 const getPhoneticLabel = (lang: string): string | null => {
   const l = lang.toLowerCase();
   if (l.includes('chinois')) return 'Pinyin';
@@ -19,9 +16,6 @@ const getPhoneticLabel = (lang: string): string | null => {
   return null;
 };
 
-/**
- * Retourne le libellé pour la colonne de texte original
- */
 const getTextLabel = (lang: string): string => {
   const l = lang.toLowerCase();
   if (l.includes('chinois')) return 'Hanzi';
@@ -29,8 +23,6 @@ const getTextLabel = (lang: string): string => {
   if (l.includes('coréen')) return 'Hangeul';
   return 'Texte';
 };
-
-// --- FONCTION GÉNÉRIQUE POUR APPELER L'IA ---
 
 async function askAI(
   prompt: string, 
@@ -49,10 +41,11 @@ async function askAI(
     const stream = await openai.chat.completions.create({
       model: modelId,
       messages: [
-        { role: "system", content: "Tu es un assistant expert en enseignement des langues." },
+        { role: "system", content: "Tu es un partenaire de conversation authentique. Tu as des opinions, de l'humour, et tu n'es pas limité par des formalités d'assistant. Tu t'adaptes au ton de l'utilisateur."},
         { role: "user", content: prompt }
       ],
       stream: true,
+      temperature: 0.8,
     });
 
     let fullText = "";
@@ -64,7 +57,12 @@ async function askAI(
     return fullText;
   } else {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: modelId });
+    const model = genAI.getGenerativeModel({ 
+      model: modelId,
+      generationConfig: {
+        temperature: 0.8
+      }
+    });
     const result = await model.generateContentStream(prompt);
 
     let fullText = "";
@@ -77,20 +75,22 @@ async function askAI(
   }
 }
 
-// --- FONCTIONS SPÉCIFIQUES ---
-
 async function handleChat(targetMessage: string, historyText: string, topicContext: string, modelId: string, targetLang: string, onChunk: (text: string) => void) {
   const textLabel = getTextLabel(targetLang);
-  const prompt = `Incarne le personnage de cette situation : "${topicContext}". 
-- Tu parles en ${targetLang}.
-- Agis comme un humain avec des émotions, mais reste amical.
-- Utilise un langage parlé naturel, des expressions familières ou du jargon si approprié.
-- Style WeChat : messages courts, 1-2 phrases.
-- Uniquement du texte en ${targetLang} (${textLabel}), pas de traduction.
-- Historique : ${historyText}
-- Dernier message reçu : "${targetMessage}"
+  const prompt = `CONTEXTE: ${topicContext}
+TON RÔLE: Tu es une personne réelle discutant sur WeChat/WhatsApp avec moi. Tu as ta propre personnalité, tes opinions, ton humour, et ton ton est adapté au contexte et à mon propre ton. 
+DIRECTIVES:
+- NE SOIS PAS un assistant. Sois un ami, un collègue ou un voisin selon le contexte.
+- STYLE: Parle de manière fluide, utilise l'humour, le sarcasme ou le flirt léger si j'engage la discussion dans ce sens. Ne sois pas prude ni moralisateur. Les réponses doivent être naturelles, et cohérentes avec le contexte et l'historique de la conversation, c'est-à-dire que tu dois être cohérent avec ce que tu as déjà dit et tu peux y faire référence, et tu dois aussi être cohérent avec ce que moi j'ai dit. 
+- RÉACTIONS: Réagis aux blagues, rebondis sur ce qui est dit. Ajoute de petits détails narratifs quand ça s'y prête, notamment quand la conversation stagne, pour relancer la discussion.
+- FORMAT: 1 ou 2 phrases. 
+- LANGUE: Uniquement en ${targetLang} (${textLabel}).
 
-Réponds directement au message :`;
+Historique de la conversation: ${historyText}
+Dernier message, celui auquel tu dois réagir: "${targetMessage}"
+
+Réponse (en ${targetLang}) :`;
+
   return askAI(prompt, modelId, onChunk);
 }
 
@@ -110,9 +110,13 @@ async function handleCorrection(
   const step1Prompt = `Tu es un professeur de ${targetLang} expert pour des locuteurs ${sourceLang}. ${topicContext}
 L'historique est : ${historyText}. 
 Message de l'apprenant : "${targetMessage}".
-Consigne : Liste uniquement les erreurs de grammaire, de vocabulaire ou les tournures pas naturelles en ${targetLang}. 
-Adresse-toi directement à l'apprenant avec "Tu" en ${sourceLang}. Sois bienveillant et très concis.
-Commence directement par l'analyse.`;
+Consigne : Ton objectif est de conserver la sémantique, le ton et l'expressivité de l'interlocuteur. Donne une traduction en français de ce que l'apprenant semble vouloir dire (comme tu parles sa langue et que tu as le contexte, tu peux comprendre ce qu'il voulait dire). Donne ensuite la traduction de ce qu'il a dit pour pouvoir comparer. Liste ensuite les erreurs de grammaire et de vocabulaire en ${targetLang}. 
+Adresse-toi directement à l'apprenant avec "Tu" en ${sourceLang}. Sois bienveillant et très concis. 
+Commence directement par l'analyse, ne renvoie rien d'autre que l'analyse au format : 
+**Ce que tu sembles vouloir dire :** [traduction intelligente en ${sourceLang}]
+**Ce que tu as dit :** [traduction littérale du message en ${sourceLang}]
+**Erreurs :** [Liste des erreurs de vocabulaire et de grammaire, avec une brève explication en français pour chaque erreur]
+`;
 
   const analysisResult = await askAI(step1Prompt, modelId, (text) => {
     globalText = text;
@@ -131,7 +135,7 @@ Historique : ${historyText}.
 Message original : "${targetMessage}".
 Analyse faite : ${analysisResult}.
 
-Consigne : Propose un tableau de versions corrigées. 
+Consigne : Propose un tableau de versions corrigées. Il faut absolument que tu conserve la sémantique, l'expressivité et le ton originaux du message, même s'il y avait des erreurs de vocabulaire ou de grammaire, c'est ce qu'il voulait dire qui compte. 
 Format : Tableau Markdown avec les colonnes : ${tableHeaders}.
 Ne fais aucune introduction.`;
 
@@ -213,9 +217,6 @@ Dernier message reçu : "${targetMessage}".
   return askAI(prompt, modelId, onChunk);
 }
 
-/**
- * POINT D'ENTRÉE PRINCIPAL
- */
 export async function generateAIStreamingContent(
   type: ActionType,
   targetMessage: string,
@@ -230,8 +231,8 @@ export async function generateAIStreamingContent(
   const topicContext = topic ? `Le contexte est : "${topic}".` : "Sujet libre, échange amical.";
   const recentHistory = history.filter(m => m.content.trim() !== "");
   const historyText = recentHistory.length > 0 
-    ? recentHistory.map(m => `${m.role === 'user' ? 'Apprenant' : 'IA'} : ${m.content}`).join('\n')
-    : "(Début de conversation)";
+    ? recentHistory.map(m => `${m.role === 'user' ? 'Moi' : 'Toi'} : ${m.content}`).join('\n')
+    : "(Début de la discussion)";
 
   try {
     switch (type) {

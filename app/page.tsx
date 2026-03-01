@@ -12,7 +12,6 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#131314] text-white flex flex-col items-center justify-between p-6">
-      {/* Spacer pour équilibrer le layout */}
       <div />
 
       <div className="max-w-4xl w-full text-center space-y-8 my-20">

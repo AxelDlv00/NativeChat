@@ -31,10 +31,8 @@ export default function Sidebar({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   
-  // État pour le modèle sélectionné (par défaut Gemini 2.0 Flash Lite)
-  const [selectedModel, setSelectedModel] = useState('gemini-2.0-flash-lite');
+  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash-lite');
 
-  // Charger le modèle sauvegardé au montage du composant
   useEffect(() => {
     const savedModel = localStorage.getItem('SELECTED_MODEL');
     if (savedModel) {
@@ -43,10 +41,14 @@ export default function Sidebar({
   }, []);
 
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newModel = e.target.value;
-    setSelectedModel(newModel);
-    localStorage.setItem('SELECTED_MODEL', newModel);
-  };
+  const newModel = e.target.value;
+  setSelectedModel(newModel);
+  
+  const provider = newModel.startsWith('gpt') ? 'openai' : 'google';
+  
+  localStorage.setItem('SELECTED_MODEL', newModel);
+  localStorage.setItem('SELECTED_PROVIDER', provider); 
+};
 
   const getFlag = (lang: string) => {
     const flags: Record<string, string> = {

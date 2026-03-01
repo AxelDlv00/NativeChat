@@ -108,8 +108,8 @@ export default function Home() {
     manualContent?: string,
     topicOverride?: string,
     messagesOverride?: Message[],
-    targetLangOverride?: string, // <-- NOUVEAU
-    sourceLangOverride?: string  // <-- NOUVEAU
+    targetLangOverride?: string, 
+    sourceLangOverride?: string  
   ) => {
     const finalTargetLang = targetLangOverride || activeChat.targetLang;
     const finalSourceLang = sourceLangOverride || activeChat.sourceLang;
@@ -215,17 +215,33 @@ export default function Home() {
   };
   
   const handleUpdateMessage = async (messageId: string, newContent: string) => {
-    try {
-      await fetch(`/api/messages/${messageId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: newContent }) });
-      await fetch(`/api/messages/${messageId}?mode=only-after`, { method: 'DELETE' });
-      const res = await fetch('/api/chats');
-      setChats(await res.json());
-      const resAi = await fetch(`/api/chats/${activeChatId}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'assistant', content: '' }) });
-      const savedAi = await resAi.json();
-      setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [...c.messages, savedAi] } : c));
-      handleAIRequest(savedAi.id, 'content', false, newContent);
-    } catch (e) { console.error(e); }
-  };
+  try {
+    await fetch(`/api/messages/${messageId}`, { 
+      method: 'PATCH', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ content: newContent }) 
+    });
+    
+    await fetch(`/api/messages/${messageId}?mode=only-after`, { 
+      method: 'DELETE' 
+    });
+    
+    const resAi = await fetch(`/api/chats/${activeChatId}/messages`, { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ role: 'assistant', content: '' }) 
+    });
+    const savedAi = await resAi.json();
+
+    const res = await fetch('/api/chats');
+    const updatedChats = await res.json();
+    setChats(updatedChats);
+
+    handleAIRequest(savedAi.id, 'content', false, newContent);
+  } catch (e) { 
+    console.error("Erreur lors de la mise à jour du message:", e); 
+  }
+};
 
   return (
     <main className="flex h-screen bg-[#131314] overflow-hidden text-gray-200 font-geist">

@@ -5,7 +5,6 @@ export interface Message {
   explanation?: string | null;
   correction?: string | null;
   examples?: string | null;
-  // États UI (non stockés en DB)
   isCorrecting?: boolean;
   isExplaining?: boolean;
   isGeneratingExamples?: boolean;
